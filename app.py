@@ -3,8 +3,12 @@ from PIL import Image
 import numpy as np
 import os
 import json
+import os
+os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+os.environ["KERAS_BACKEND"] = "tensorflow"
 import tensorflow as tf
-from tensorflow.keras.models import load_model
+import keras
 from tensorflow.keras.applications.densenet import preprocess_input
 import gdown
 
@@ -19,7 +23,9 @@ if not os.path.exists(MODEL_PATH):
     gdown.download(url, MODEL_PATH, quiet=False)
 
 # ===== LOAD MODEL =====
-model = load_model(MODEL_PATH)
+print("Loading model...")
+model = keras.models.load_model(MODEL_PATH, compile=False)
+print("Model loaded successfully")
 
 classes = ['cardboard','glass','metal','paper','plastic','trash']
 
