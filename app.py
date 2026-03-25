@@ -3,12 +3,28 @@ from PIL import Image
 import numpy as np
 import os
 import json
+import tensorflow as tf
+from tensorflow.keras.models import load_model
+import gdown
 
 app = Flask(__name__)
 
-DB_FILE = "db.json"
+# ===== DOWNLOAD MODEL FROM GOOGLE DRIVE =====
+MODEL_PATH = "model.h5"
+
+if not os.path.exists(MODEL_PATH):
+    print("Downloading model...")
+    url = "https://drive.google.com/uc?id=14J29rPbZTENNYcAkFv_ZfLP0nCSokeE6"
+    gdown.download(url, MODEL_PATH, quiet=False)
+
+# ===== LOAD MODEL =====
+model = load_model(MODEL_PATH)
+
+classes = ['cardboard','glass','metal','paper','plastic','trash']
 
 # ===== DATABASE =====
+DB_FILE = "db.json"
+
 def load_db():
     if not os.path.exists(DB_FILE):
         return []
@@ -19,10 +35,18 @@ def save_db(data):
     with open(DB_FILE, "w") as f:
         json.dump(data, f)
 
-# ===== LOAD MODEL =====
-# TODO: replace this with your model
+# ===== PREDICTION FUNCTION =====
 def predict_image(img):
-    return "plastic"
+    img = img.resize((100, 100))
+    img_array = np.array(img)
+
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = img_array / 255.0
+
+    pred = model.predict(img_array)
+    index = np.argmax(pred[0])
+
+    return classes[index]
 
 # ===== ROUTES =====
 
@@ -32,6 +56,9 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
+    if 'file' not in request.files:
+        return jsonify({"error": "No file uploaded"})
+
     file = request.files['file']
     img = Image.open(file).convert("RGB")
 
@@ -57,7 +84,7 @@ def stats():
 @app.route("/forecast")
 def forecast():
     return jsonify({
-        "alert": "High waste expected tomorrow"
+        "alert": "High waste expected tomorrow (trend-based)"
     })
 
 if __name__ == "__main__":
