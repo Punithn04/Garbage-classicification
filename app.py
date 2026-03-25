@@ -6,54 +6,24 @@ from flask import Flask, request, jsonify
 from PIL import Image
 import numpy as np
 import json
-import tensorflow as tf
-from tensorflow.keras.applications import DenseNet121
-from tensorflow.keras.layers import Flatten, Dense, Dropout, BatchNormalization, Input
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.densenet import preprocess_input
 import gdown
 
 app = Flask(__name__)
 
 # ===== DOWNLOAD MODEL =====
-MODEL_PATH = "densenet121.weights.h5"
+MODEL_PATH = "model.h5"
 
 if not os.path.exists(MODEL_PATH):
     print("Downloading model...")
-    url = "https://drive.google.com/uc?id=14J29rPbZTENNYcAkFv_ZfLP0nCSokeE6"
+    url = "https://drive.google.com/uc?export=download&id=1fw8eYt_mWl0IwfgOgSXdFnfxDD1EzzDy"
     gdown.download(url, MODEL_PATH, quiet=False)
 
-# ===== BUILD MODEL =====
-print("Building model...")
-
-base_model = DenseNet121(
-    include_top=False,
-    weights='imagenet',
-    input_tensor=Input(shape=(100, 100, 3))
-)
-
-for layer in base_model.layers:
-    layer.trainable = False
-
-model = Sequential([
-    base_model,
-    Flatten(),
-    BatchNormalization(),
-    Dense(1024, activation='relu'),
-    Dropout(0.4),
-    BatchNormalization(),
-    Dense(512, activation='relu'),
-    Dropout(0.4),
-    BatchNormalization(),
-    Dense(256, activation='relu'),
-    Dense(6, activation='softmax')
-])
-
-model.build((None, 100, 100, 3))
-
-print("Loading weights...")
-model.load_weights(MODEL_PATH)
-print("Model ready!")
+# ===== LOAD MODEL =====
+print("Loading model...")
+model = load_model(MODEL_PATH, compile=False)
+print("Model loaded successfully")
 
 classes = ['cardboard','glass','metal','paper','plastic','trash']
 
@@ -76,7 +46,7 @@ def predict_image(img):
     img_array = np.array(img)
 
     img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)  # IMPORTANT
+    img_array = preprocess_input(img_array)
 
     pred = model.predict(img_array)
     index = np.argmax(pred[0])
