@@ -5,6 +5,7 @@ import os
 import json
 import tensorflow as tf
 from tensorflow.keras.models import load_model
+from tensorflow.keras.applications.densenet import preprocess_input
 import gdown
 
 app = Flask(__name__)
@@ -41,7 +42,7 @@ def predict_image(img):
     img_array = np.array(img)
 
     img_array = np.expand_dims(img_array, axis=0)
-    img_array = img_array / 255.0
+    img_array = preprocess_input(img_array)
 
     pred = model.predict(img_array)
     index = np.argmax(pred[0])
