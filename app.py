@@ -20,6 +20,8 @@ if not os.path.exists(MODEL_PATH):
     url = "https://drive.google.com/uc?export=download&id=1fw8eYt_mWl0IwfgOgSXdFnfxDD1EzzDy"
     gdown.download(url, MODEL_PATH, quiet=False)
 
+print("Model file size:", os.path.getsize(MODEL_PATH))
+
 # ===== LOAD MODEL =====
 print("Loading model...")
 model = load_model(MODEL_PATH, compile=False)
