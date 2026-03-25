@@ -42,7 +42,7 @@ def predict_image(img):
     img_array = np.array(img)
 
     img_array = np.expand_dims(img_array, axis=0)
-    img_array = preprocess_input(img_array)
+    img_array = img_array / 255.0
 
     pred = model.predict(img_array)
     index = np.argmax(pred[0])
